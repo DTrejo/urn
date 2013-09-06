@@ -4,8 +4,10 @@
   "description": "install cached npm modules without an internet connection",
   "main": "nak.js",
   "dependencies": {
-      "npm": "1.3.8"
-    },
+    "npm": "1.3.8",
+    "semver": "2.1.0",
+    "mkdirp": "0.3.5"
+  },
   "devDependencies": {},
   "scripts": {
     "test": "node test.js"
@@ -13,6 +15,10 @@
   "repository": {
     "type": "git",
     "url": "http://github.com/dtrejo/nak"
+  },
+  "preferGlobal": true,
+  "bin": {
+    "nak": "./bin/nak"
   },
   "keywords": [
     "npm",

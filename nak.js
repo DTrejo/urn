@@ -1,28 +1,44 @@
+//
+// TODO use abstractions, async, optimist
+//
 var path = require('path')
 var fs = require('fs')
 var assert = require('assert')
 var exec = require('child_process').exec
-var semver = require('./node_modules/npm/node_modules/semver')
-var mkdirp = require('./node_modules/npm/node_modules/mkdirp')
+var semver = require('semver')
+var mkdirp = require('mkdirp')
 var identity = function(i) { return i};
 
-var CACHE_LS = './cachels.txt'
+var CACHE_LS = path.join(__dirname, 'cachels.txt')
 var argv = process.argv
 
 var CACHE; // location of npm cache. TODO get via npm config get cache
 
+// TODO add real debug lines
+log = function(){
+    // console.log.apply(console.log, arguments)
+}
+
 if (argv.indexOf('-h') + argv.indexOf('--help') > -1) {
     console.log('Usage:\n  nak install underscore'
-    + '\n  nak i underscore\n  nak underscore')
+    + '\n  nak i underscore\n  nak underscore'
+    + '\n  nak underscore -s # save underscore as dependency in package.json')
     return
 }
 
+var savetojson = false
+if (argv.indexOf('-s') > -1) {
+    argv[argv.indexOf('-s')] = ''
+    savetojson = true;
+}
+
 // toss out args; we only know how to `install`
+log(argv)
 argv[0] = argv[1] = ''
 argv[argv.indexOf('i') || 0] = ''
 argv[argv.indexOf('install') || 0] = ''
 argv = argv.filter(identity)
-console.log(argv)
+log(argv)
 
 if (!fs.existsSync(CACHE_LS)) {
     var npm = require('npm')
@@ -36,21 +52,21 @@ var module_folders = cache
         return line.substr(-1) === '/'
     })
 
-console.log(module_folders.slice(0,10))
+log(module_folders.slice(0,10))
 
 // TODO fragile
 var raw = module_folders[2];
 if (raw[0] == '~') raw = process.env.HOME + raw.substring(1)
 assert(raw[0] === '/', '`npm config get cache` cant be a relative path')
 var CACHE = path.dirname(raw)
-console.log('found npm cache: ' + CACHE)
+log('found npm cache: ' + CACHE)
 
 var copyoperations = []
 argv.forEach(function(name) {
     copyoperations = copyoperations.concat(rawname2deps(name))
 })
 
-console.log('copyoperations', copyoperations)
+log('copyoperations', copyoperations)
 
 copyOver(copyoperations);
 
@@ -59,10 +75,13 @@ function copyOver (ops) {
     ops.forEach(function(op) {
         var source = op.source
         var dest = op.dest
-        console.log('cp -R ' + source + '/' + ' ' + dest)
+        log('cp -R ' + source + '/' + ' ' + dest)
         mkdirp(dest, function(er) {
             if (er) throw er
-            exec('cp -R ' + source + '/' + ' ' + dest)
+            exec('cp -R ' + source + '/' + ' ' + dest, function(er) {
+                if (er) throw er
+                console.log('WIN - ' + dest.replace(process.cwd, ''))
+            })
         })
     })
 }
@@ -81,11 +100,11 @@ function rawname2deps (name, currentdir) {
     }
 
     var allversionsdir = path.join(CACHE, name)
-    console.log('inspecting', allversionsdir)
-    
+    log('inspecting', allversionsdir)
+
     // get valid package folders
     var allversions = fs.readdirSync(allversionsdir)
-    
+
     allversions = allversions.filter(semver.valid)
     if (!allversions.length) {
         throw new Error('could not find package in cache: ' + name)
@@ -114,16 +133,34 @@ function rawname2deps (name, currentdir) {
 
     var packagejson = path.join(rootpkg, 'package.json')
     var pkg = require(packagejson)
-
     pkg.dependencies = pkg.dependencies || {}
+
+    // add as dep to root package.json
+    save_new_dep_to_cwd_package_json(name, version, currentdir)
+
     Object.keys(pkg.dependencies).forEach(function (dep) {
         var ver = pkg.dependencies[dep]
         if (ver) dep = dep + '@' + ver
-        console.log('recur on', dep)
+        log('recur on', dep)
         folderstocopy = folderstocopy.concat(
             rawname2deps(dep, path.join(currentdir, name, 'node_modules'))
         )
     })
 
     return folderstocopy
+}
+
+function save_new_dep_to_cwd_package_json(name, version, currentdir) {
+    if (!savetojson) return
+    if (currentdir !== 'node_modules') return
+
+    var cwdjson = path.join(process.cwd(), './package.json')
+    try {
+        var cwdpkg = require(cwdjson)
+    } catch (e) {
+        return console.error('invalid ' + cwdjson)
+    }
+    cwdpkg.dependencies[name] = version.toString()
+    log(cwdjson, JSON.stringify(cwdpkg, null, 2))
+    fs.writeFileSync(cwdjson, JSON.stringify(cwdpkg, null, 2))
 }
