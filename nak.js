@@ -9,9 +9,7 @@ var semver = require('semver')
 var mkdirp = require('mkdirp')
 var identity = function(i) { return i};
 
-var CACHE_LS = path.join(__dirname, 'cachels.txt')
 var argv = process.argv
-
 var CACHE; // location of npm cache. TODO get via npm config get cache
 
 // TODO add real debug lines
@@ -40,35 +38,34 @@ argv[argv.indexOf('install') || 0] = ''
 argv = argv.filter(identity)
 log(argv)
 
-if (!fs.existsSync(CACHE_LS)) {
-    var npm = require('npm')
-    // TODO look in npm cache for modules
-}
-
-var cache = fs.readFileSync(CACHE_LS, 'utf8')
-var module_folders = cache
-    .split('\n')
-    .filter(function(line) {
-        return line.substr(-1) === '/'
-    })
-
-log(module_folders.slice(0,10))
-
-// TODO fragile
-var raw = module_folders[2];
-if (raw[0] == '~') raw = process.env.HOME + raw.substring(1)
-assert(raw[0] === '/', '`npm config get cache` cant be a relative path')
-var CACHE = path.dirname(raw)
-log('found npm cache: ' + CACHE)
-
-var copyoperations = []
-argv.forEach(function(name) {
-    copyoperations = copyoperations.concat(rawname2deps(name))
+if (!argv.length) exec('ls node_modules', function(er, data) {
+    if (er) throw er
+    console.log('node_modules/\n  '+data.trim().split('\n').join('\n  '))
 })
 
-log('copyoperations', copyoperations)
+exec('npm config get cache', function(er, cache) {
+    if (er) throw err
+    CACHE = cache.trim()
+    log('found npm cache: ' + CACHE)
 
-copyOver(copyoperations);
+    var module_folders =
+    fs.readdirSync(CACHE)
+    .filter(function(filename) {
+        return path.extname(filename) !== '.lock'
+        && filename !== '-'
+    })
+    log(module_folders.slice(0,10))
+
+    var copyoperations = []
+    argv.forEach(function(name) {
+        copyoperations = copyoperations.concat(rawname2deps(name))
+    })
+    log('copyoperations', copyoperations)
+
+
+    copyOver(copyoperations)
+})
+
 
 // a copy-based "installer". does not build anything. lol.
 function copyOver (ops) {
@@ -103,7 +100,8 @@ function rawname2deps (name, currentdir) {
     log('inspecting', allversionsdir)
 
     // get valid package folders
-    var allversions = fs.readdirSync(allversionsdir)
+    try { var allversions = fs.readdirSync(allversionsdir) }
+    catch(e) { throw new Error('FAIL - module not found: ' + name)}
 
     allversions = allversions.filter(semver.valid)
     if (!allversions.length) {
