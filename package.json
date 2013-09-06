@@ -1,0 +1,29 @@
+{
+  "name": "nak",
+  "version": "0.0.0",
+  "description": "install cached npm modules without an internet connection",
+  "main": "nak.js",
+  "dependencies": {
+      "npm": "1.3.8"
+    },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/dtrejo/nak"
+  },
+  "keywords": [
+    "npm",
+    "offline",
+    "cache",
+    "install",
+    "module"
+  ],
+  "author": "David Trejo",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/dtrejo/nak/issues"
+  }
+}
