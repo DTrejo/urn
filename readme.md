@@ -3,8 +3,9 @@
 urn installs npm packages from your npm cache. Unless you've used
 `npm cache clean`, you will be able to install ANY package you've ever installed.
 
+## `npm -g install urn`
 
-## Usage
+**Usage:**
 
 `urn --help` or `urn -h`
 
