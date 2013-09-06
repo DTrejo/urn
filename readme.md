@@ -1,19 +1,19 @@
 # npm for when your internet is down
 
-nak installs npm packages from your npm cache. Unless you've used
+urn installs npm packages from your npm cache. Unless you've used
 `npm cache clean`, you will be able to install ANY package you've ever installed.
 
 
 ## Usage
 
-`nak --help` or `nak -h`
+`urn --help` or `urn -h`
 
 ```
 Usage:
-  nak install underscore
-  nak i underscore
-  nak underscore
-  nak underscore -s # save underscore as dependency in package.json
+  urn install underscore
+  urn i underscore
+  urn underscore
+  urn underscore -s # save underscore as dependency in package.json
 ```
 
 #### Warning

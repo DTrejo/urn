@@ -1,8 +1,8 @@
 {
-  "name": "nak",
+  "name": "urn",
   "version": "0.0.0",
   "description": "install cached npm modules without an internet connection",
-  "main": "nak.js",
+  "main": "urn.js",
   "dependencies": {
     "semver": "2.1.0",
     "mkdirp": "0.3.5"
@@ -13,11 +13,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "http://github.com/dtrejo/nak"
+    "url": "http://github.com/dtrejo/urn"
   },
   "preferGlobal": true,
   "bin": {
-    "nak": "./bin/nak"
+    "urn": "./bin/urn"
   },
   "keywords": [
     "npm",
@@ -29,6 +29,6 @@
   "author": "David Trejo",
   "license": "BSD-2-Clause",
   "bugs": {
-    "url": "https://github.com/dtrejo/nak/issues"
+    "url": "https://github.com/dtrejo/urn/issues"
   }
 }

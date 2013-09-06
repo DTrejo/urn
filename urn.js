@@ -18,9 +18,9 @@ log = function(){
 }
 
 if (argv.indexOf('-h') + argv.indexOf('--help') > -1) {
-    console.log('Usage:\n  nak install underscore'
-    + '\n  nak i underscore\n  nak underscore'
-    + '\n  nak underscore -s # save underscore as dependency in package.json')
+    console.log('Usage:\n  urn install underscore'
+    + '\n  urn i underscore\n  urn underscore'
+    + '\n  urn underscore -s # save underscore as dependency in package.json')
     return
 }
 
