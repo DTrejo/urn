@@ -158,6 +158,7 @@ function save_new_dep_to_cwd_package_json(name, version, currentdir) {
     } catch (e) {
         return console.error('invalid ' + cwdjson)
     }
+    cwdpkg.dependencies = cwdpkg.dependencies || {}
     cwdpkg.dependencies[name] = version.toString()
     log(cwdjson, JSON.stringify(cwdpkg, null, 2))
     fs.writeFileSync(cwdjson, JSON.stringify(cwdpkg, null, 2))
