@@ -1,8 +1,9 @@
 var path = require('path')
 var fs = require('fs')
-var semver = require('./node_modules/npm/node_modules/semver')
-var mkdirp = require('./node_modules/npm/node_modules/semver')
 var assert = require('assert')
+var exec = require('child_process').exec
+var semver = require('./node_modules/npm/node_modules/semver')
+var mkdirp = require('./node_modules/npm/node_modules/mkdirp')
 var identity = function(i) { return i};
 
 var CACHE_LS = './cachels.txt'
@@ -25,7 +26,6 @@ console.log(argv)
 
 if (!fs.existsSync(CACHE_LS)) {
     var npm = require('npm')
-    var cproc = require('child_process')
     // TODO look in npm cache for modules
 }
 
@@ -45,13 +45,25 @@ assert(raw[0] === '/', '`npm config get cache` cant be a relative path')
 var CACHE = path.dirname(raw)
 console.log('found npm cache: ' + CACHE)
 
-console.log(argv.map(rawname2deps))
+var copyoperations = []
+argv.forEach(function(name) {
+    copyoperations = copyoperations.concat(rawname2deps(name))
+})
 
-// a recursive copy-based installer
-function install (parentdir, name, ver, cb) {
-    var dest = path.join(parentdir, 'node_modules', name)
-    mkdirp(dest, function(er) {
-        assert.ifError(er)
+console.log('copyoperations', copyoperations)
+
+copyOver(copyoperations);
+
+// a copy-based "installer". does not build anything. lol.
+function copyOver (ops) {
+    ops.forEach(function(op) {
+        var source = op.source
+        var dest = op.dest
+        console.log('cp -R ' + source + '/' + ' ' + dest)
+        mkdirp(dest, function(er) {
+            if (er) throw er
+            exec('cp -R ' + source + '/' + ' ' + dest)
+        })
     })
 }
 
