@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 //
 // TODO use abstractions, async, optimist
 //

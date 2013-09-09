@@ -17,7 +17,7 @@
   },
   "preferGlobal": true,
   "bin": {
-    "urn": "./bin/urn"
+    "urn": "./urn.js"
   },
   "keywords": [
     "npm",
