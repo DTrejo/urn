@@ -1,3 +1,8 @@
+note: consider using `npm install --no-registry` or `npm install -N` instead of
+this module. npm will get all the details right (e.g. binary building, 
+preinstall scripts, etc). Getting the details right also means that npm's 
+install is slower :(
+
 # npm for when your internet is down
 
 urn installs npm packages from your npm cache. Unless you've used
