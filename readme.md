@@ -1,3 +1,5 @@
+# NOTE: you should use `npm -N install`. It does the same thing but BETTER
+
 # npm for when your internet is down
 
 urn installs npm packages from your npm cache. Unless you've used
