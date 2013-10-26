@@ -1,7 +1,8 @@
 note: consider using `npm install --no-registry` or `npm install -N` instead of
-this module. npm will get all the details right (e.g. binary building, 
-preinstall scripts, etc). Getting the details right also means that npm's 
-install is slower :(
+this module. npm will get all the details right (e.g. binary building,
+preinstall scripts, etc). As long as you are using a version after v0.10.19, it
+will be very fast :) [issue link][1]
+[1]:https://github.com/isaacs/npm/issues/1738#issuecomment-26885594
 
 # npm for when your internet is down
 
