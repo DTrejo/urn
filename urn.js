@@ -126,6 +126,12 @@ function rawname2deps (name, currentdir) {
 
     var folderstocopy = []
     var rootpkg = path.join(CACHE, name, version, 'package')
+    var folder_to_copy_contents = fs.readdirSync(rootpkg)
+    log('foldertocopy', rootpkg)
+    log('folder_to_copy_contents', folder_to_copy_contents)
+    if (folder_to_copy_contents.length == 1) {
+        throw new Error('new-style npm cached tarball not supported!')
+    }
     folderstocopy.push
         ({ source: rootpkg
         , dest: path.join(currentdir, name)
