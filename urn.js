@@ -9,6 +9,8 @@ var assert = require('assert')
 var exec = require('child_process').exec
 var semver = require('semver')
 var mkdirp = require('mkdirp')
+// it retains sync versions of everything, thankfully
+var shell = require('shelljs')
 var identity = function(i) { return i};
 
 var argv = process.argv
@@ -128,9 +130,19 @@ function rawname2deps (name, currentdir) {
     var rootpkg = path.join(CACHE, name, version, 'package')
     var folder_to_copy_contents = fs.readdirSync(rootpkg)
     log('foldertocopy', rootpkg)
-    log('folder_to_copy_contents', folder_to_copy_contents)
+    log('folder_to_copy_contents', folder_to_copy_contents.join(', '))
+    // this is a new-style npm package, the rootpkg contains only package.json
+    // here we unzip the archive npm puts here, making this cache folder look
+    // the same as how old versions of npm did it.
+    // TODO: sometimes an archive will not unzip via command line; but unzips
+    // fine via OSX. e.g. minimist@0.0.10, debug@2.0.0, node-sass@0.9.3
     if (folder_to_copy_contents.length == 1) {
-        throw new Error('new-style npm cached tarball not supported!')
+        var tarball = path.join(CACHE, name, version, 'package.tgz')
+        var untar_command = 'tar -xf ' + tarball
+        log('\t> ' + untar_command)
+        var stdout = shell.exec(untar_command).output
+        log('\tdone untar-ing')
+        // process.exit()
     }
     folderstocopy.push
         ({ source: rootpkg
@@ -144,9 +156,20 @@ function rawname2deps (name, currentdir) {
     // add as dep to root package.json
     save_new_dep_to_cwd_package_json(name, version, currentdir)
 
-    Object.keys(pkg.dependencies).forEach(function (dep) {
-        var ver = pkg.dependencies[dep]
-        if (ver) dep = dep + '@' + ver
+    // TODO does not detect circular deps well. For now, we check
+    // if the parent tree contains a module of the same name
+    // I think it is okay that different versions of the same module in the same
+    // dep tree will not be installed. Translation: node-sass cannot contain
+    // a different version of node-sass inside it's node_modules, at any depth.
+    Object.keys(pkg.dependencies).forEach(function (dep_name) {
+        var ver = pkg.dependencies[dep_name]
+        if (ver) dep = dep_name + '@' + ver
+        if (currentdir.indexOf(dep_name) > -1) {
+            // warn, and don't install this circular dep.
+            return console.log('CIRCULAR DEP!', name, 'depends on'
+                , dep_name, ', but', dep_name
+                , 'was depended on earlier (higher up in the dep tree)')
+        }
         log('recur on', dep)
         folderstocopy = folderstocopy.concat(
             rawname2deps(dep, path.join(currentdir, name, 'node_modules'))
