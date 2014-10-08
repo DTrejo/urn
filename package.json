@@ -1,6 +1,6 @@
 {
   "name": "urn",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "description": "install cached npm modules without an internet connection",
   "main": "urn.js",
   "dependencies": {
