@@ -24,13 +24,18 @@ log = function(){
 if (argv.indexOf('-h') + argv.indexOf('--help') > -1) {
     console.log('Usage:\n  urn install underscore'
     + '\n  urn i underscore\n  urn underscore'
-    + '\n  urn underscore -s # save underscore as dependency in package.json')
+    + '\n  urn underscore -s # save underscore as dependency in package.json'
+    + '\n  urn underscore -S # same as above')
     return
 }
 
 var savetojson = false
 if (argv.indexOf('-s') > -1) {
     argv[argv.indexOf('-s')] = ''
+    savetojson = true;
+}
+if (argv.indexOf('-S') > -1) {
+    argv[argv.indexOf('-S')] = ''
     savetojson = true;
 }
 
