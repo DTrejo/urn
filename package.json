@@ -1,7 +1,7 @@
 {
   "name": "urn",
   "version": "1.0.0",
-  "description": "install cached npm modules without an internet connection",
+  "description": "is npm down? install cached npm modules without an internet connection. Offline npm install like a boss.",
   "main": "urn.js",
   "dependencies": {
     "semver": "2.1.0",
@@ -25,7 +25,11 @@
     "offline",
     "cache",
     "install",
-    "module"
+    "module",
+    "airplane",
+    "park",
+    "down",
+    "internet"
   ],
   "author": "David Trejo",
   "license": "BSD-2-Clause",
