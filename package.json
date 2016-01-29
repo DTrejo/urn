@@ -1,6 +1,6 @@
 {
   "name": "urn",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "is npm down? install cached npm modules without an internet connection. Offline npm install like a boss.",
   "main": "urn.js",
   "dependencies": {
