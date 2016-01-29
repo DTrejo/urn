@@ -18,8 +18,14 @@ var CACHE; // location of npm cache. TODO get via npm config get cache
 
 // TODO add real debug lines
 log = function(){
-    // console.log.apply(console.log, arguments)
+    console.log.apply(console.log, arguments)
 }
+function readdir_sync_no_ds_store (dir) {
+    return fs.readdirSync(dir).filter(function(f) {
+        if (f === '.DS_Store') return false
+        return true
+    })
+};
 
 if (argv.indexOf('-h') + argv.indexOf('--help') > -1) {
     console.log('Usage:\n  urn install underscore'
@@ -71,8 +77,10 @@ exec('npm config get cache', function(er, cache) {
     })
     log('copyoperations', copyoperations)
 
-
-    copyOver(copyoperations)
+    // TODO: add a dry run flag?
+    // TODO: add a symlink mode (instead of copying over stuff)
+    // copyOver(copyoperations)
+    symlinkOver(copyoperations)
 })
 
 
@@ -86,9 +94,35 @@ function copyOver (ops) {
             if (er) throw er
             exec('cp -R ' + source + '/' + ' ' + dest, function(er) {
                 if (er) throw er
-                console.log('WIN - ' + dest.replace(process.cwd, ''))
+                console.log('WIN - ' + dest)
             })
         })
+    })
+}
+// a symlink based "installer". does not build anything.
+// list all the symlinks this made so you can delete them
+//      "find" ~/.npm -maxdepth 5 -type l
+//      # and to clean it up:
+//      # "find" ~/.npm -maxdepth 5 -type l | xargs "rm"
+//      # "find" ~/.npm -maxdepth 5 -type d | grep node_modules | xargs rmdir
+// this essentially turns the npm cache into globally installed packages.
+// kinda bad.
+function symlinkOver (ops) {
+    ops.forEach(function(op) {
+        var source = op.source
+        var dest = path.join(process.cwd(), op.dest)
+        // var dest_dirname = path.dirname(dest)
+        // mkdirp.sync(dest_dirname) // usually just node_modules
+        // log('ln -s ' + source + '/' + ' ' + dest)
+        // try {
+        //     fs.symlinkSync(source, dest)
+        // } catch (err) {
+        //     // file may already exist.
+        //     // TODO solution: re-do the symlink, b/c versions may have changed.
+        //     var eexistsymlink = 'EEXIST: file already exists, symlink'
+        //     if (err.message.indexOf(eexistsymlink) === -1) throw err
+        // }
+        console.log('WIN - ' + dest.replace(process.cwd(), ''))
     })
 }
 
@@ -136,10 +170,7 @@ function rawname2deps (name, currentdir) {
     var folderstocopy = []
     var root = path.join(CACHE, name, version)
     var rootpkg = path.join(CACHE, name, version, 'package')
-    var folder_to_copy_contents = fs.readdirSync(rootpkg).filter(function(f) {
-        if (f === '.DS_Store') return false // goddamn .DS_Store
-        return true
-    })
+    var folder_to_copy_contents = readdir_sync_no_ds_store(rootpkg)
     log('foldertocopy', rootpkg)
     log('folder_to_copy_contents', folder_to_copy_contents.join(', '))
     // this is a new-style npm package, the rootpkg contains only package.json
@@ -147,13 +178,23 @@ function rawname2deps (name, currentdir) {
     // the same as how old versions of npm did it.
     // TODO: sometimes an archive will not unzip via command line; but unzips
     // fine via OSX. e.g. minimist@0.0.10, debug@2.0.0, node-sass@0.9.3
-    if (folder_to_copy_contents.length == 1) {
+    if (folder_to_copy_contents.length === 1) {
         var tarball = path.join(CACHE, name, version, 'package.tgz')
         var untar_command = 'tar -xf ' + tarball + ' -C ' + root
         log('\t> ' + untar_command)
         var stdout = shell.exec(untar_command).output
         log('\tdone untar-ing')
-        // process.exit()
+
+        // for some reason ejs's tgz has a root directory not named "package"
+        // this fixes it.
+        // TODO could always do this so no need to special case it. but whatevs.
+        if (name == 'ejs' && readdir_sync_no_ds_store(rootpkg).length === 1) {
+            // very tricky differences. read very carefully.
+            var untar_command = 'tar -xf ' + tarball + ' -C ' + rootpkg + ' --strip-components 1'
+            log('\t> ' + untar_command)
+            var stdout = shell.exec(untar_command).output
+            log('\tdone untar-ing, 2nd try')
+        }
     }
     folderstocopy.push
         ({ source: rootpkg
