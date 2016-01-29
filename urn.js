@@ -11,7 +11,7 @@ var semver = require('semver')
 var mkdirp = require('mkdirp')
 // it retains sync versions of everything, thankfully
 var shell = require('shelljs')
-var identity = function(i) { return i};
+var identity = function(i) { return i }
 
 var argv = process.argv
 var CACHE; // location of npm cache. TODO get via npm config get cache
@@ -119,10 +119,12 @@ function rawname2deps (name, currentdir) {
 
     // ensure desired version exists
     if (version) {
+        var inSearchOf = version
         var range = semver.validRange(version)
         var version = semver.maxSatisfying(allversions, range)
         if (!version) {
-            throw new Error('no satisfactory version for ' + name
+            throw new Error('no satisfactory version for '
+                + name + '@' + inSearchOf
                 + '. \n(saw \n  ' + allversions.join('\n  ') + ')')
         }
     // get latest
@@ -132,8 +134,12 @@ function rawname2deps (name, currentdir) {
     }
 
     var folderstocopy = []
+    var root = path.join(CACHE, name, version)
     var rootpkg = path.join(CACHE, name, version, 'package')
-    var folder_to_copy_contents = fs.readdirSync(rootpkg)
+    var folder_to_copy_contents = fs.readdirSync(rootpkg).filter(function(f) {
+        if (f === '.DS_Store') return false // goddamn .DS_Store
+        return true
+    })
     log('foldertocopy', rootpkg)
     log('folder_to_copy_contents', folder_to_copy_contents.join(', '))
     // this is a new-style npm package, the rootpkg contains only package.json
@@ -143,7 +149,7 @@ function rawname2deps (name, currentdir) {
     // fine via OSX. e.g. minimist@0.0.10, debug@2.0.0, node-sass@0.9.3
     if (folder_to_copy_contents.length == 1) {
         var tarball = path.join(CACHE, name, version, 'package.tgz')
-        var untar_command = 'tar -xf ' + tarball
+        var untar_command = 'tar -xf ' + tarball + ' -C ' + root
         log('\t> ' + untar_command)
         var stdout = shell.exec(untar_command).output
         log('\tdone untar-ing')
